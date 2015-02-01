@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 import RPi.GPIO as GPIO
-from time import sleep
-from time import strftime
+#from time import sleep
+from time import strftime,sleep,time
 from socket import gethostname
 import string, os, sys, sqlite3
 
@@ -14,7 +14,7 @@ GPIO.setmode(GPIO.BCM)
 # Suppress "channel already in use" warning
 GPIO.setwarnings(False)
 
-# name pins
+# Name pins
 
 pin2 = 4 	# LED
 pin4 = 17       # Photoresistor 
@@ -30,8 +30,6 @@ GPIO.output(pin4, GPIO.LOW)
 light = 0 # must be numeric
 
 # Define functions
-
-# Get reading from photoreceptor
 
 def getLight(thresh):
 	lightCount = 0
@@ -65,22 +63,15 @@ def write_log_csv():
 #
 def main():
 
+        timestamp = time() #strftime("%Y-%m-%d %H:%M:%S")
+	timeout = timestamp + 60
+	print timestamp
+	print timeout
+	counter = 0
 	while True:
-		getLight(600)
-
-	#timestamp = strftime("%Y-%m-%d %H:%M:00")
-
-# Main function
-
-#def main():
-#
-#	timestamp = strftime("%Y-%m-%d %H:%M:%S")
-#		
-#	ledFlash(2,0.1)
-#	light = getLight()
-        
-#	print "timestamp:    ", str(timestamp)
-#	print "light:        ", str(light)
+		counter += getLight(600)
+		print counter
+	
 
 if __name__ == '__main__':
 	main()
