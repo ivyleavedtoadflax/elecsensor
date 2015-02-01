@@ -41,9 +41,9 @@ def getLight(thresh):
 	GPIO.setup(pin4, GPIO.OUT)
 	if lightCount < thresh:
 		sleep(0.01) # set a timeout to avoid counting the same blink twice
-		print 1
+		return(1)
 	else:
-		print 0
+		return(0)
 
 # Run data recording LED init sequence
 
