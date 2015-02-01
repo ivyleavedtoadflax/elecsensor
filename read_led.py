@@ -10,35 +10,20 @@ import string, os, sys, sqlite3, psycopg2, server_cred
 
 # Use Broadcom chip reference for GPIO
 GPIO.setmode(GPIO.BCM)
-
-# Suppress "channel already in use" warning
 GPIO.setwarnings(False)
 
 # Name pins
 
-pin2 = 4 	# LED
 pin4 = 17       # Photoresistor 
 
-GPIO.setup(pin2, GPIO.OUT)
-GPIO.setup(pin4, GPIO.OUT)
-
-# Set initial pin states. Wired led on pin2 the wrong way so start high and go low!
-
-GPIO.output(pin2, GPIO.LOW)
-GPIO.output(pin4, GPIO.LOW)
-
-light = 0 # must be numeric
+GPIO.setup(pin4, GPIO.IN)
 
 # Define functions
 
-def getLight(thresh):
-	lightCount = 0
-	GPIO.setup(pin4, GPIO.IN)		 # This takes about 1 millisecond per loop cycle
-	while (GPIO.input(pin4) == GPIO.LOW):
-		lightCount += 0.001
-	GPIO.setup(pin4, GPIO.OUT)
-	if lightCount < thresh:
-		sleep(0.01) # set a timeout to avoid counting the same blink twice
+def getLight():
+	input_value = GPIO.input(pin4)
+	sleep(0.03)
+	if (input_value == 0):
 		return(0.001)
 	else:
 		return(0)
@@ -54,9 +39,9 @@ def ledFlash(i,j):
 		sleep(j)
 		ledCount +=1
 
-def write_log_csv():
+def write_log_csv(ts,day,night,val):
         log = open("/home/pi/read_led/Log.csv", "a")
-	log.write("\n" + str(ts) + "," + str(ldr_count))
+	log.write("\n" + str(ts) + "," + str(day) + "," + str(night) + "," + str(val))
 	log.close()	
 
 def write_log_psql(ts,day,night,val):
@@ -70,22 +55,23 @@ def write_log_psql(ts,day,night,val):
         curs.close()
         conn.close()
 
-#
 def main():
 
-	day = 0
-	night = 0  
+        initial = open("/home/pi/read_led/initial.vals","r")
+        day = float(initial.readline())
+        night = float(initial.readline())
+        initial.close()
 
 	while True:
 		timeout = time() + 60
 	
 		counter = 0
 		while timeout > time():
-			counter += getLight(600)
+			counter += getLight()
 
                 timestamp = strftime("%Y-%m-%d %H:%M:%S")
 		
-		if strftime("%H") in [23, range(1, 6)]:
+		if int(strftime("%H")) in range(7,22):
 			day += counter
 		else:
 			night += counter
@@ -94,8 +80,15 @@ def main():
 			write_log_psql(timestamp,day,night,counter)
 		except:
 			pass
-		#print timestamp + "," + str(day) + "," + str(night) + "," + str(counter)
+
+		try:
+			write_log_csv(timestamp,day,night,counter)
+		except:
+			pass
 	
+        	initial = open("/home/pi/read_led/initial.vals","w")
+        	initial.write(str(day) + "\n" + str(night))
+        	initial.close()
 
 if __name__ == '__main__':
 	main()
