@@ -4,7 +4,7 @@ import RPi.GPIO as GPIO
 #from time import sleep
 from time import strftime,sleep,time
 from socket import gethostname
-import string, os, sys, sqlite3
+import string, os, sys, sqlite3, psycopg2, server_cred
 
 ######################### Setup GPIO PINS #########################
 
@@ -35,11 +35,11 @@ def getLight(thresh):
 	lightCount = 0
 	GPIO.setup(pin4, GPIO.IN)		 # This takes about 1 millisecond per loop cycle
 	while (GPIO.input(pin4) == GPIO.LOW):
-		lightCount += 1
+		lightCount += 0.001
 	GPIO.setup(pin4, GPIO.OUT)
 	if lightCount < thresh:
 		sleep(0.01) # set a timeout to avoid counting the same blink twice
-		return(1)
+		return(0.001)
 	else:
 		return(0)
 
@@ -59,18 +59,42 @@ def write_log_csv():
 	log.write("\n" + str(ts) + "," + str(ldr_count))
 	log.close()	
 
+def write_log_psql(ts,day,night,val):
+
+        conn_string = str("dbname = '"+ server_cred.db_name + "' user = '" + server_cred.username + "' host = '" + server_cred.host_ip + "' password = '" + server_cred.password + "'")
+        conn = psycopg2.connect(conn_string)
+        curs = conn.cursor()
+        query_string = str("INSERT INTO elec values('" + str(ts) + "','" + str(day) + "','" + str(night) + "','" + str(val) + "');")
+        curs.execute(query_string)
+        conn.commit()
+        curs.close()
+        conn.close()
 
 #
 def main():
 
-        timestamp = time() #strftime("%Y-%m-%d %H:%M:%S")
-	timeout = timestamp + 60
-	print timestamp
-	print timeout
-	counter = 0
+	day = 0
+	night = 0  
+
 	while True:
-		counter += getLight(600)
-		print counter
+		timeout = time() + 60
+	
+		counter = 0
+		while timeout > time():
+			counter += getLight(600)
+
+                timestamp = strftime("%Y-%m-%d %H:%M:%S")
+		
+		if strftime("%H") in [23, range(1, 6)]:
+			day += counter
+		else:
+			night += counter
+		
+		try:
+			write_log_psql(timestamp,day,night,counter)
+		except:
+			pass
+		#print timestamp + "," + str(day) + "," + str(night) + "," + str(counter)
 	
 
 if __name__ == '__main__':
