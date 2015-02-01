@@ -6,20 +6,6 @@ from time import strftime
 from socket import gethostname
 import string, os, sys, sqlite3
 
-#	(ORANGE) 3.3v	[][]	5v (RED)
-#	I2C0 SDA	[][]	DO NOT CONNECT
-#	I2C0 SCL	[][]	GROUND (BLACK)
-#	(GREEN) GPIO 4	[][]	UART TXD
-#	DO NOT CONNECT	[][]	UART RXD
-#	(YELLOW) GPIO 17[][]	GPIO 18 (ORANGE)
-#	(BLUE) GPIO 21	[][]	DO NOT CONNECT
-#	(PURPLE) GPIO 22[][]	GPIO 23
-#	DO NOT CONNECT	[][]	GPIO 24
-#	SPI MOSI	[][]	DO NOT CONNECT
-#	SPI MISO	[][]	GPIO 25
-#	SPI SCLK	[][]	SP10 CEO N
-#	DO NOT CONNECT	[][]	SP10 CE1 N
-
 ######################### Setup GPIO PINS #########################
 
 # Use Broadcom chip reference for GPIO
@@ -47,13 +33,17 @@ light = 0 # must be numeric
 
 # Get reading from photoreceptor
 
-def getLight():
+def getLight(thresh):
 	lightCount = 0
 	GPIO.setup(pin4, GPIO.IN)		 # This takes about 1 millisecond per loop cycle
 	while (GPIO.input(pin4) == GPIO.LOW):
 		lightCount += 1
 	GPIO.setup(pin4, GPIO.OUT)
-	return(lightCount)
+	if lightCount < thresh:
+		sleep(0.01) # set a timeout to avoid counting the same blink twice
+		print 1
+	else:
+		print 0
 
 # Run data recording LED init sequence
 
@@ -66,12 +56,20 @@ def ledFlash(i,j):
 		sleep(j)
 		ledCount +=1
 
-#
+def write_log_csv():
+        log = open("/home/pi/read_led/Log.csv", "a")
+	log.write("\n" + str(ts) + "," + str(ldr_count))
+	log.close()	
 
-while True:
-	print getLight()
-	
+
 #
+def main():
+
+	while True:
+		getLight(600)
+
+	#timestamp = strftime("%Y-%m-%d %H:%M:00")
+
 # Main function
 
 #def main():
@@ -84,7 +82,7 @@ while True:
 #	print "timestamp:    ", str(timestamp)
 #	print "light:        ", str(light)
 
-#if __name__ == '__main__':
-#	main()
+if __name__ == '__main__':
+	main()
 
 GPIO.cleanup()
