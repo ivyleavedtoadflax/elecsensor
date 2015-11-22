@@ -15,8 +15,10 @@ GPIO.setwarnings(False)
 # Name pins
 
 pin4 = 17       # Photoresistor
+pin2 = 4       # LED
 
 GPIO.setup(pin4, GPIO.IN)
+GPIO.setup(pin2, GPIO.OUT)
 
 # Define functions
 
@@ -27,6 +29,8 @@ def getLight():
 	if (input_value == 0):
 		# 0.001 is the value in kWh that one flash represents
 		return(0.001)
+		# Flash the test LED in time with each meter pulse for error checking
+		ledFlash(1, 0.1)
 	else:
 		return(0)
 
@@ -41,7 +45,7 @@ def ledFlash(i,j):
 		GPIO.output(pin2, GPIO.LOW)
 		sleep(j)
 		ledCount +=1
-
+		
 def write_log_csv(ts,day,night,val):
         log = open("/home/pi/elec/Log.csv", "a")
 	log.write("\n" + str(ts) + "," + str(day) + "," + str(night) + "," + str(val))
