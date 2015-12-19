@@ -89,12 +89,14 @@ def main():
 
 	# This is only useul if you have an economy seven meter.
 	# These values can be changed to be more exact relative
-	# to your switchover time
+	# to your switchover time. Disabled in this version due
+	# to switch to standard meter. Only use day!
 
-		if int(strftime("%H")) in range(7,22):
-			day += counter
-		else:
-			night += counter
+		#if int(strftime("%H")) in range(7,22):
+		#	day += counter
+		#else:
+		#	night += counter
+	day += counter
 
 	# Try to log to psql database
 
