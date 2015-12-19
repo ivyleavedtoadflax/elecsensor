@@ -43,6 +43,7 @@ def ledFlash(i,j,k):
                 GPIO.output(pin2, GPIO.HIGH)
                 sleep(j)
                 GPIO.output(pin2, GPIO.LOW)
+		print("FLASH")
                 sleep(randint(1,k))
                 ledCount +=1
 

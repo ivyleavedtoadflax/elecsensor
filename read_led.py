@@ -15,8 +15,10 @@ GPIO.setwarnings(False)
 # Name pins
 
 pin4 = 17       # Photoresistor
+#pin2 = 4        # LED
 
 GPIO.setup(pin4, GPIO.IN)
+#GPIO.setup(pin2, GPIO.OUT)
 
 # Define functions
 
@@ -29,18 +31,15 @@ def getLight():
 		return(0.001)
 	else:
 		return(0)
+	
 
 # Run data recording LED init sequence
 # This is not currently used in this version
 
-def ledFlash(i,j):
-	ledCount = 0
-	while ledCount < i:
-		GPIO.output(pin2, GPIO.HIGH)
-		sleep(j)
-		GPIO.output(pin2, GPIO.LOW)
-		sleep(j)
-		ledCount +=1
+def ledFlash(j):
+	GPIO.output(pin2, GPIO.HIGH)
+	sleep(j)
+	GPIO.output(pin2, GPIO.LOW)
 
 def write_log_csv(ts,day,night,val):
         log = open("/home/pi/elec/Log.csv", "a")
