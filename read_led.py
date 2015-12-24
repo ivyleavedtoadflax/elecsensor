@@ -15,17 +15,10 @@ GPIO.setwarnings(False)
 # Name pins
 
 pin4 = 17       # Photoresistor
-<<<<<<< HEAD
-#pin2 = 4        # LED
+#pin2 = 4       # LED
 
 GPIO.setup(pin4, GPIO.IN)
 #GPIO.setup(pin2, GPIO.OUT)
-=======
-pin2 = 4       # LED
-
-GPIO.setup(pin4, GPIO.IN)
-GPIO.setup(pin2, GPIO.OUT)
->>>>>>> 69d4c472f7df3df8db7d9b614a50e3f3b9632369
 
 # Define functions
 
@@ -50,17 +43,17 @@ def ledFlash(j):
 	sleep(j)
 	GPIO.output(pin2, GPIO.LOW)
 
-def write_log_csv(ts,day,night,val):
-        log = open("/home/pi/elec/Log.csv", "a")
+def write_log_csv(ts,val):
+        log = open("/home/pi/elec/Log_adu.csv", "a")
 	log.write("\n" + str(ts) + "," + str(day) + "," + str(night) + "," + str(val))
 	log.close()
 
-def write_log_psql(ts,day,night,val):
+def write_log_psql(ts,val):
 
         conn_string = str("dbname = '"+ server_cred.db_name + "' user = '" + server_cred.username + "' host = '" + server_cred.host_ip + "' password = '" + server_cred.password + "'")
         conn = psycopg2.connect(conn_string)
         curs = conn.cursor()
-        query_string = str("INSERT INTO elec values('" + str(ts) + "','" + str(day) + "','" + str(night) + "','" + str(val) + "');")
+        query_string = str("INSERT INTO elec_adu values('" + str(ts) + "','" + str(val) + "');")
         curs.execute(query_string)
         conn.commit()
         curs.close()
@@ -70,10 +63,10 @@ def main():
 
 	# First read initial values (i.e. your meters current electricity use)
 
-        initial = open("/home/pi/elec/initial.vals","r")
-        day = float(initial.readline())
-        night = float(initial.readline())
-        initial.close()
+ #       initial = open("/home/pi/elec/initial.vals","r")
+ #       day = float(initial.readline())
+ #       night = float(initial.readline())
+ #       initial.close()
 
 	# Set the timeout to be the current time plus 60 seconds
 
@@ -96,7 +89,7 @@ def main():
 		#	day += counter
 		#else:
 		#	night += counter
-	day += counter
+		#day += counter
 
 	# Try to log to psql database
 
