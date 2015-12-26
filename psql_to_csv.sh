@@ -20,8 +20,12 @@ case $key in
     PASSWORDFILE="$2"
     shift # past argument
     ;;
-    -t|--table)
-    TABLE="$2"
+    -P|--user)
+    PUSER="$2"
+    shift # past argument
+    ;;
+    -q|--query)
+    QUERY="$2"
     shift # past argument
     ;;
     -o|--output)
@@ -34,11 +38,10 @@ case $key in
 esac
 shift # past argument or value
 done
-echo OUTPUT  = "${OUTPUT}"
-echo PASSWORDFILE = "${PASSWORDFILE}"
-echo TABLE = "${TABLE}"
-echo HOST = "${HOST}"
-#echo USER = "${USER}"
+#echo OUTPUT  = "${OUTPUT}"
+#echo PASSWORDFILE = "${PASSWORDFILE}"
+#echo HOST = "${HOST}"
+#echo USER = "${PUSER}"
 # Extract password from server_cred.py file
 
 foo=$(grep 'password\s\=\s\W\K(.*?)\W' "$PASSWORDFILE" -Po)
@@ -49,10 +52,10 @@ export PGPASSWORD=${foo%\'}
 
 # Setup query string 
 
-QUERY='\copy (select * from '"$TABLE"') to '"$OUTPUT"' csv header;'
+QUERY1='\copy ('"$QUERY"') to '"$OUTPUT"' csv header;'
 
-echo "$QUERY"
+echo "$QUERY1"
 
 # Send query to server
 
-psql -h "$HOST" -U other_user -d sensorpi -c "$QUERY"
+psql -h "$HOST" -U "$PUSER" -d sensorpi -c "$QUERY1"
