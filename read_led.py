@@ -1,9 +1,7 @@
 #!/usr/bin/python
 
 import RPi.GPIO as GPIO
-#from time import sleep
-from time import strftime,sleep,time
-from socket import gethostname
+from time import strftime, sleep, time
 import string, os, sys, sqlite3, psycopg2, server_cred
 
 ######################### Setup GPIO PINS #########################
@@ -15,10 +13,8 @@ GPIO.setwarnings(False)
 # Name pins
 
 pin4 = 17       # Photoresistor
-#pin2 = 4       # LED
 
 GPIO.setup(pin4, GPIO.IN)
-#GPIO.setup(pin2, GPIO.OUT)
 
 # Define functions
 
@@ -29,23 +25,12 @@ def getLight():
 	if (input_value == 0):
 		# 0.001 is the value in kWh that one flash represents
 		return(0.001)
-		# Flash the test LED in time with each meter pulse for error checking
-		ledFlash(1, 0.1)
 	else:
 		return(0)
 	
-
-# Run data recording LED init sequence
-# This is not currently used in this version
-
-def ledFlash(j):
-	GPIO.output(pin2, GPIO.HIGH)
-	sleep(j)
-	GPIO.output(pin2, GPIO.LOW)
-
 def write_log_csv(ts,val):
         log = open("/home/pi/elec/Log_adu.csv", "a")
-	log.write("\n" + str(ts) + "," + str(day) + "," + str(night) + "," + str(val))
+	log.write("\n" + str(ts) + "," + str(val))
 	log.close()
 
 def write_log_psql(ts,val):
@@ -53,20 +38,13 @@ def write_log_psql(ts,val):
         conn_string = str("dbname = '"+ server_cred.db_name + "' user = '" + server_cred.username + "' host = '" + server_cred.host_ip + "' password = '" + server_cred.password + "'")
         conn = psycopg2.connect(conn_string)
         curs = conn.cursor()
-        query_string = str("INSERT INTO elec_adu values('" + str(ts) + "','" + str(val) + "');")
-        curs.execute(query_string)
+	query_string = "INSERT INTO elec_adu values(%s,%s);"
+	curs.execute(query_string, (ts,val))
         conn.commit()
         curs.close()
         conn.close()
 
 def main():
-
-	# First read initial values (i.e. your meters current electricity use)
-
- #       initial = open("/home/pi/elec/initial.vals","r")
- #       day = float(initial.readline())
- #       night = float(initial.readline())
- #       initial.close()
 
 	# Set the timeout to be the current time plus 60 seconds
 
@@ -80,34 +58,19 @@ def main():
 
                 timestamp = strftime("%Y-%m-%d %H:%M:%S")
 
-	# This is only useul if you have an economy seven meter.
-	# These values can be changed to be more exact relative
-	# to your switchover time. Disabled in this version due
-	# to switch to standard meter. Only use day!
-
-		#if int(strftime("%H")) in range(7,22):
-		#	day += counter
-		#else:
-		#	night += counter
-		#day += counter
-
 	# Try to log to psql database
 
 		try:
-			write_log_psql(timestamp,day,night,counter)
+			write_log_psql(timestamp,counter)
 		except:
 			pass
 
 	# Also try to log to csv
 
 		try:
-			write_log_csv(timestamp,day,night,counter)
+			write_log_csv(timestamp,counter)
 		except:
 			pass
-
-        	initial = open("/home/pi/elec/initial.vals","w")
-        	initial.write(str(day) + "\n" + str(night))
-        	initial.close()
 
 if __name__ == '__main__':
 	main()
