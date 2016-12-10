@@ -59,11 +59,11 @@ def main():
                 timestamp = strftime("%Y-%m-%d %H:%M:%S")
 
 	# Try to log to psql database
-
-		try:
-			write_log_psql(timestamp,counter)
-		except:
-			pass
+	# postgres database is down, so disable for now
+	#	try:
+	#		write_log_psql(timestamp,counter)
+	#	except:
+	#		pass
 
 	# Also try to log to csv
 
